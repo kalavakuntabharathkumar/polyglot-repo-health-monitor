@@ -1,0 +1,32 @@
+name: health-monitor
+
+on:
+  push:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  health-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate health report
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python main.py analyze --owner ${{ github.repository_owner }} --repo ${{ github.event.repository.name }}
+
+      - name: Upload report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: health-report
+          path: reports/
